@@ -21,13 +21,8 @@ define([
     "form2js",
     "org/forgerock/openidm/ui/admin/authentication/AuthenticationAbstractView",
     "org/forgerock/openidm/ui/admin/delegates/ExternalAccessDelegate",
-    "libs/codemirror/lib/codemirror",
-    "libs/codemirror/mode/xml/xml"
-], function($, _,
-        Form2js,
-        AuthenticationAbstractView,
-        ExternalAccessDelegate,
-        codemirror) {
+    "org/forgerock/openidm/ui/admin/util/CodeMirror"
+], function($, _, Form2js, AuthenticationAbstractView, ExternalAccessDelegate, CodeMirror) {
 
     var OpenIDConnectView = AuthenticationAbstractView.extend({
         template: "templates/admin/authentication/modules/OPENID_CONNECT.html",
@@ -109,7 +104,7 @@ define([
                     "userOrGroup": this.data.userOrGroupDefault
                 });
 
-                this.model.iconCode = codemirror.fromTextArea(this.$el.find(".button-html")[0], {
+                this.model.iconCode = CodeMirror(this.$el.find(".button-html")[0], {
                     lineNumbers: true,
                     viewportMargin: Infinity,
                     mode: "xml",

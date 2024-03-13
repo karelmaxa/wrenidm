@@ -32,9 +32,7 @@ define([
     "selectize",
     "org/forgerock/commons/ui/common/util/AutoScroll",
     "dragula",
-    "libs/codemirror/lib/codemirror",
-    "libs/codemirror/mode/xml/xml",
-    "libs/codemirror/addon/display/placeholder"
+    "org/forgerock/openidm/ui/admin/util/CodeMirror"
 ], function($, _,
         bootstrap,
         handlebars,
@@ -50,7 +48,7 @@ define([
         selectize,
         AutoScroll,
         dragula,
-        codeMirror) {
+        CodeMirror) {
 
     var AbstractSelfServiceView = AdminAbstractView.extend({
         events: {
@@ -155,7 +153,7 @@ define([
                     );
 
                 if (useCodeMirror) {
-                    codeMirror.fromTextArea(
+                    CodeMirror(
                         translationMapGroup.find(".email-message-code-mirror-disabled:last")[0],
                         _.extend({readOnly: true, cursorBlinkRate: -1}, this.data.codeMirrorConfig)
                     );
@@ -392,11 +390,12 @@ define([
                     message: $(handlebars.compile("{{> selfservice/_" + type + "}}")(currentData)),
                     onshown: _.bind(function (dialogRef) {
                         _.each(dialogRef.$modalBody.find(".email-message-code-mirror-disabled"), (instance) => {
-                            codeMirror.fromTextArea(instance, _.extend({readOnly: true, cursorBlinkRate: -1}, this.data.codeMirrorConfig));
+                            CodeMirror(instance, _.extend({readOnly: true, cursorBlinkRate: -1}, this.data.codeMirrorConfig));
                         });
 
                         if (dialogRef.$modalBody.find(".email-message-code-mirror")[0]) {
-                            this.cmBox = codeMirror.fromTextArea(dialogRef.$modalBody.find(".email-message-code-mirror")[0], this.data.codeMirrorConfig);
+                            this.cmBox = CodeMirror(dialogRef.$modalBody.find(".email-message-code-mirror")[0], this.data.codeMirrorConfig);
+                            // TODO FIXME check
                             this.cmBox.on("change", () => {
                                 this.checkAddTranslation();
                             });

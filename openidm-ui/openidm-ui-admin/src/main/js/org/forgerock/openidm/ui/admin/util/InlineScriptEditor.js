@@ -21,21 +21,15 @@ define([
     "jsonEditor",
     "org/forgerock/commons/ui/common/main/AbstractView",
     "org/forgerock/commons/ui/common/main/ValidatorsManager",
-    "libs/codemirror/lib/codemirror",
-    "libs/codemirror/mode/groovy/groovy",
-    "libs/codemirror/mode/javascript/javascript",
-    "libs/codemirror/addon/display/placeholder",
     "org/forgerock/openidm/ui/admin/delegates/ScriptDelegate",
-    "org/forgerock/openidm/ui/admin/util/WorkflowWidget"
+    "org/forgerock/openidm/ui/admin/util/WorkflowWidget",
+    "org/forgerock/openidm/ui/admin/util/CodeMirror"
 ], function($, _, JSONEditor,
         AbstractView,
         validatorsManager,
-        codeMirror,
-        groovyMode,
-        jsMode,
-        placeHolder,
         ScriptDelegate,
-        WorkflowWidget) {
+        WorkflowWidget,
+        CodeMirror) {
     var seInstance = {},
         InlineScriptEditor = AbstractView.extend({
             template: "templates/admin/util/ScriptEditorView.html",
@@ -128,7 +122,7 @@ define([
                         this.$el.find(".preview-pane .preview-button").bind("click", _.bind(this.previewScript, this));
                     }
 
-                    this.cmBox = codeMirror.fromTextArea(this.$el.find(".scriptSourceCode")[0], {
+                    this.cmBox = CodeMirror(this.$el.find(".scriptSourceCode")[0], {
                         lineNumbers: true,
                         autofocus: this.model.autoFocus,
                         viewportMargin: Infinity,

@@ -31,8 +31,7 @@ define([
     "org/forgerock/openidm/ui/admin/selfservice/UserRegistrationConfigView",
     "bootstrap-dialog",
     "selectize",
-    "libs/codemirror/lib/codemirror",
-    "libs/codemirror/mode/xml/xml"
+    "org/forgerock/openidm/ui/admin/util/CodeMirror"
 ], function($, _,
         handlebars,
         form2js,
@@ -47,7 +46,7 @@ define([
         UserRegistrationConfigView,
         BootstrapDialog,
         selectize,
-        codemirror) {
+        CodeMirror) {
     var SocialConfigView = AdminAbstractView.extend({
         template: "templates/admin/social/SocialConfigTemplate.html",
         events: {
@@ -365,7 +364,7 @@ define([
                             }
                         });
 
-                        this.model.iconCode = codemirror.fromTextArea(dialogRef.$modalBody.find(".button-html")[0], {
+                        this.model.iconCode = CodeMirror(dialogRef.$modalBody.find(".button-html")[0], {
                             lineNumbers: true,
                             viewportMargin: Infinity,
                             mode: "xml",

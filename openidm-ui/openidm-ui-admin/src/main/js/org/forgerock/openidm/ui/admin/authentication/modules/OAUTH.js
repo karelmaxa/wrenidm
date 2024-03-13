@@ -20,12 +20,8 @@ define([
     "lodash",
     "form2js",
     "org/forgerock/openidm/ui/admin/authentication/AuthenticationAbstractView",
-    "libs/codemirror/lib/codemirror",
-    "libs/codemirror/mode/xml/xml"
-], function($, _,
-        Form2js,
-        AuthenticationAbstractView,
-        codemirror) {
+    "org/forgerock/openidm/ui/admin/util/CodeMirror"
+], function($, _, Form2js, AuthenticationAbstractView, CodeMirror) {
 
     var OpenIDConnectView = AuthenticationAbstractView.extend({
         template: "templates/admin/authentication/modules/OAUTH.html",
@@ -81,7 +77,7 @@ define([
                     "userOrGroup": this.data.userOrGroupDefault
                 });
 
-                this.model.iconCode = codemirror.fromTextArea(this.$el.find(".button-html")[0], {
+                this.model.iconCode = CodeMirror(this.$el.find(".button-html")[0], {
                     lineNumbers: true,
                     viewportMargin: Infinity,
                     mode: "xml",

@@ -14,7 +14,11 @@
     "node-qunit-puppeteer": "^2.1.2"
   },
   "dependencies": {
-    "codemirror": "^4.10.0",
+    "@codemirror/lang-javascript": "^6.2.2",
+    "@codemirror/lang-xml": "^6.1.0",
+    "@codemirror/language": "^6.10.1",
+    "@codemirror/legacy-modes": "^6.3.3",
+    "codemirror": "^6.0.1",
     "d3": "^3.5.5",
     "dragula": "^3.6.7",
     "moment-timezone": "^0.5.4",

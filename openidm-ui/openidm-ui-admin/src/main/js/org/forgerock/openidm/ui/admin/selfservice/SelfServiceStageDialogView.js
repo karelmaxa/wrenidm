@@ -24,9 +24,7 @@ define([
     "org/forgerock/commons/ui/common/util/UIUtils",
     "org/forgerock/openidm/ui/admin/util/AdminUtils",
     "bootstrap-dialog",
-    "libs/codemirror/lib/codemirror",
-    "libs/codemirror/mode/xml/xml",
-    "libs/codemirror/addon/display/placeholder"
+    "org/forgerock/openidm/ui/admin/util/CodeMirror"
 ], function($, _,
         boostrap,
         handlebars,
@@ -35,7 +33,7 @@ define([
         UiUtils,
         AdminUtils,
         BootstrapDialog,
-        codeMirror) {
+        CodeMirror) {
 
     var SelfServiceStageDialogView = AdminAbstractView.extend({
         element: "#dialogs",
@@ -75,11 +73,12 @@ define([
                     message: $(handlebars.compile("{{> selfservice/_" + args.type + "}}")(args.data)),
                     onshown: _.bind(function (dialogRef) {
                         _.each(dialogRef.$modalBody.find(".email-message-code-mirror-disabled"), (instance) => {
-                            codeMirror.fromTextArea(instance, _.extend({readOnly: true, cursorBlinkRate: -1}, this.model.codeMirrorConfig));
+                            CodeMirror(instance, _.extend({readOnly: true, cursorBlinkRate: -1}, this.model.codeMirrorConfig));
                         });
 
                         if (dialogRef.$modalBody.find(".email-message-code-mirror")[0]) {
-                            this.cmBox = codeMirror.fromTextArea(dialogRef.$modalBody.find(".email-message-code-mirror")[0], this.model.codeMirrorConfig);
+                            this.cmBox = CodeMirror(dialogRef.$modalBody.find(".email-message-code-mirror")[0], this.model.codeMirrorConfig);
+                            // TODO FIXME check
                             this.cmBox.on("change", () => {
                                 this.checkAddTranslation();
                             });
@@ -235,7 +234,7 @@ define([
                     );
 
                 if (useCodeMirror) {
-                    codeMirror.fromTextArea(
+                    CodeMirror(
                         translationMapGroup.find(".email-message-code-mirror-disabled:last")[0],
                         _.extend({readOnly: true, cursorBlinkRate: -1}, this.model.codeMirrorConfig)
                     );

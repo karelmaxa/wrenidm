@@ -18,6 +18,7 @@ const {
     useEslint,
     useLocalResources,
     useModuleResources,
+    useBuildModule,
     useLessStyles,
     useBuildRequire
 } = require("@wrensecurity/commons-ui-build");
@@ -35,14 +36,7 @@ const MODULE_RESOURCES = {
     "dragula/dist/dragula.min.js": "libs/dragula.js",
     "moment-timezone/builds/moment-timezone-with-data.min.js": "libs/moment-timezone-with-data.js",
     "qunit/qunit/qunit.css": "css/qunit.css",
-    "qunit/qunit/qunit.js": "libs/qunit.js",
-    //~ Code mirror resources
-    "codemirror/addon/display/placeholder.js": "libs/codemirror/addon/display/placeholder.js",
-    "codemirror/lib/codemirror.css": "css/codemirror/codemirror.css",
-    "codemirror/lib/codemirror.js": "libs/codemirror/lib/codemirror.js",
-    "codemirror/mode/groovy/groovy.js": "libs/codemirror/mode/groovy/groovy.js",
-    "codemirror/mode/javascript/javascript.js": "libs/codemirror/mode/javascript/javascript.js",
-    "codemirror/mode/xml/xml.js": "libs/codemirror/mode/xml/xml.js",
+    "qunit/qunit/qunit.js": "libs/qunit.js"
 };
 
 const LOCAL_RESOURCES = {
@@ -87,6 +81,12 @@ gulp.task("build:bundle", useBuildRequire({
     ]
 }));
 
+gulp.task("build:editor", useBuildModule({
+    id: "org/forgerock/openidm/ui/admin/util/CodeMirror",
+    src: "src/main/js/org/forgerock/openidm/ui/admin/util/CodeMirror.jsm",
+    dest: join(TARGET_PATH, "org/forgerock/openidm/ui/admin/util/CodeMirror.js")
+}));
+
 gulp.task("test:scripts", useLocalResources(TEST_RESOURCES, { dest: TESTS_PATH }));
 
 gulp.task("test:sinon", useBuildScripts({
@@ -119,6 +119,7 @@ gulp.task("build", gulp.series(
         "build:assets",
         "build:scripts",
         "build:compose",
+        "build:editor",
         "build:libs",
         "test:sinon"
     ),
@@ -134,7 +135,7 @@ gulp.task("test", gulp.series(
 ));
 
 gulp.task("watch", () => {
-    gulp.watch("src/main/js/**", gulp.parallel("build:scripts"));
+    gulp.watch("src/main/js/**/*.js", gulp.parallel("build:scripts"));
 });
 
 gulp.task("default", gulp.series("eslint", "build", "test"));
