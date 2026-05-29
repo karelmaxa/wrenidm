@@ -243,7 +243,7 @@ define([
                 if (redrawContainer) {
                     this.renderExpressionTree(callback);
                 } else {
-                    this.$el.find(".filter").text(this.getFilterString());
+                    this.$el.find(".filter").val(this.getFilterString());
                 }
             },
 

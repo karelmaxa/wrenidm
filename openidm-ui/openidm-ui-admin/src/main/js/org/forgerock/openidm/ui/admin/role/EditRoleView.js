@@ -43,9 +43,10 @@ function ($, _, Handlebars,
     EditRoleView.prototype = Object.create(GenericEditResourceView);
     EditRoleView.prototype.tabViewOverrides.members = MembersView;
     EditRoleView.prototype.events = _.extend({
-        "change .expressionTree :input": "showPendingChanges",
+        "change .expressionTree :input": "onExpressionTreeChange",
         "blur :input.datetimepicker": "showPendingChanges",
-        "change #enableDynamicRoleGrantCheckbox": "toggleQueryView"
+        "change #enableDynamicRoleGrantCheckbox": "toggleQueryView",
+        "change #conditionFilterHolder .filter": "onConditionFilterInputChange"
     }, GenericEditResourceView.events);
 
     EditRoleView.prototype.partials = GenericEditResourceView.partials.concat(["partials/role/_conditionForm.html"]);
@@ -142,6 +143,42 @@ function ($, _, Handlebars,
         );
 
         return editor;
+    };
+
+    EditRoleView.prototype.onExpressionTreeChange = function () {
+        var _this = this;
+        this.showPendingChanges();
+        _.defer(function () {
+            if (_this.queryEditor) {
+                _this.$el.find("#conditionFilterHolder .filter").val(_this.queryEditor.getFilterString());
+            }
+        });
+    };
+
+    EditRoleView.prototype.onConditionFilterInputChange = function () {
+        var _this = this,
+            filterString = this.$el.find("#conditionFilterHolder .filter").val().trim(),
+            editor;
+
+        if (!filterString) {
+            return;
+        }
+
+        this.$el.find("#enableDynamicRoleGrantCheckbox").prop("checked", true);
+        this.$el.find("#roleConditionQueryField").show();
+
+        editor = new UserQueryFilterEditor();
+        editor.render(
+            {
+                "queryFilter": filterString,
+                "element": "#conditionFilterHolder",
+                "resource": "managed/role"
+            },
+            function () {
+                _this.showPendingChanges();
+            }
+        );
+        this.queryEditor = editor;
     };
 
     EditRoleView.prototype.toggleQueryView = function (e) {

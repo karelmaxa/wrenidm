@@ -8,9 +8,9 @@
                 <legend>{{legend}}</legend>
                 <div class="form-group">
 
-                    <div class="filter well well-lg {{#if hidden}} hidden {{/if}}">{{filterString}}</div>
+                    <input type="text" class="filter form-control {{#if hidden}} hidden {{/if}}" value="{{filterString}}">
         {{else}}
-        <div class="filter well">{{filterString}}</div>
+        <input type="text" class="filter form-control" value="{{filterString}}">
 
         <div class="expressionTree">
             <fieldset>
