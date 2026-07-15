@@ -510,6 +510,7 @@
                 "endDate" : "End Date",
                 "grantType" : "Grant Type",
                 "conditional" : "Conditional",
+                "inherited" : "Inherited",
                 "timezone" : "Timezone"
             },
             "ResourceList":

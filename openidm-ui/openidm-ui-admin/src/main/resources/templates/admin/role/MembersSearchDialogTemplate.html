@@ -19,10 +19,10 @@
 	         </div>
          </div>
       </div>
-      <div class="form-group has-feedback" {{#equals _refProperties.grantType.value "conditional"}}{{else}}style="display:none;"{{/equals}}>
+      <div class="form-group has-feedback" {{#unless _refProperties.grantType.value}}style="display:none;"{{/unless}}>
          <label class="control-label col-sm-3">{{t "templates.admin.RoleEdit.grantType"}}</label>
          <div class="col-sm-7">
-            <span>{{t "templates.admin.RoleEdit.conditional"}}</span>
+            <span>{{#equals _refProperties.grantType.value "conditional"}}{{t "templates.admin.RoleEdit.conditional"}}{{else}}{{#equals _refProperties.grantType.value "inherited"}}{{t "templates.admin.RoleEdit.inherited"}}{{/equals}}{{/equals}}</span>
          </div>
       </div>
       <div id="_refProperty-temporalConstraints"></div>
