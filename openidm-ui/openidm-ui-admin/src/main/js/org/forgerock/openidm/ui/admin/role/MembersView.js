@@ -32,13 +32,13 @@ function ($, _, Handlebars,
     var MembersView = new RelationshipArrayView();
 
     //overriding the render function here to remove the checkboxes from grid rows
-    //that have the _grantType set to conditional
+    //that have the _grantType set to conditional or inherited
     //accomplished by adding the onGridChange arg
     MembersView.render = function (args, callback) {
         args.onGridChange = _.bind(function () {
             var membersList = this.$el.find("#relationshipArray-members tbody, #relationshipArray-roles tbody");
 
-            this.removeConditionalGrantCheckboxes(membersList);
+            this.removeDerivedGrantCheckboxes(membersList);
 
             if (callback) {
                 callback();
@@ -47,14 +47,14 @@ function ($, _, Handlebars,
 
         RelationshipArrayView.prototype.render.call(this, args, callback);
     };
+
     /**
      * @param memberList {object} - a jquery object representing the data rows from the members list grid
      */
-    MembersView.removeConditionalGrantCheckboxes = function (membersList) {
-        _.each(membersList.find("tr"), function (row) {
-            var rowIsConditional = $(row).find("td:contains('conditional')").length;
-
-            if (rowIsConditional) {
+    MembersView.removeDerivedGrantCheckboxes = function (membersList) {
+        membersList.find("tr").toArray().forEach((row) => {
+            const grantType = $(row).find('td[class*=_grantType]').text();
+            if (grantType === 'conditional' || grantType === 'inherited') {
                 $(row).find(".select-row-cell input[type=checkbox]").remove();
             }
         });
