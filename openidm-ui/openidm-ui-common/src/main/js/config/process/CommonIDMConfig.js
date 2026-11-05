@@ -12,15 +12,15 @@
  * information: "Portions copyright [year] [name of copyright owner]".
  *
  * Copyright 2014-2016 ForgeRock AS.
- * Portions Copyright 2023 Wren Security.
+ * Portions Copyright 2023-2026 Wren Security.
  */
 
 define([
     "jquery",
     "lodash",
     "org/forgerock/openidm/ui/common/util/Constants",
-    "org/forgerock/commons/ui/common/main/EventManager"
-], function($, _, constants, eventManager) {
+    "org/forgerock/commons/ui/common/components/Messages"
+], function($, _, constants, messagesManager) {
     var ignorePassword = false,
         obj = [
             {
@@ -39,12 +39,13 @@ define([
                             .groupBy('property')
                             .toPairs()
                             .map(function (a) {
-                                return " - " + a[0] + ": " +
+                                return " - " + _.escape(a[0]) + ": " +
                                             _.chain(a[1])
                                                 .map('policyRequirements')
                                                 .map(function (pr) {
                                                     return _.map(pr, function (p) {
-                                                        return $.t("common.form.validation." + p.policyRequirement, p.params);
+                                                        return _.escape($.t("common.form.validation." + p.policyRequirement,
+                                                            _.extend({}, p.params, { interpolation: { escapeValue: false } })));
                                                     });
                                                 })
                                                 .value()
@@ -55,7 +56,15 @@ define([
 
                     }
 
-                    eventManager.sendEvent(constants.EVENT_DISPLAY_MESSAGE_REQUEST, {key: "resourceValidationError", validationErrors: errors});
+                    // The message contains HTML line breaks; the dynamic parts are escaped above.
+                    messagesManager.messages.addMessage({
+                        type: "error",
+                        message: $.t("config.messages.AdminMessages.resourceValidationError", {
+                            validationErrors: errors,
+                            interpolation: { escapeValue: false }
+                        }),
+                        escape: false
+                    });
                 }
             }
         ];
