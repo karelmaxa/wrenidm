@@ -12,7 +12,7 @@
  * information: "Portions copyright [year] [name of copyright owner]".
  *
  * Copyright 2013-2016 ForgeRock AS.
- * Portions Copyright 2020-2023 Wren Security.
+ * Portions Copyright 2020-2026 Wren Security.
  */
 package org.forgerock.openidm.script;
 
@@ -60,6 +60,13 @@ public abstract class AbstractScriptedService implements ScriptCustomizer, Scrip
      * Setup logging for the {@link AbstractScriptedService}.
      */
     private static final Logger logger = LoggerFactory.getLogger(AbstractScriptedService.class);
+
+    /**
+     * Guards {@link #embeddedHandler} and {@link #selfRegistration}. Script events arrive on other threads than
+     * activation, configuration updates and deactivation. The script registry is not called while holding it, as
+     * it sends the events while holding the lock of the script record.
+     */
+    private final Object registrationLock = new Object();
 
     private ScriptedRequestHandler embeddedHandler = null;
 
@@ -111,8 +118,10 @@ public abstract class AbstractScriptedService implements ScriptCustomizer, Scrip
             ScriptEntry scriptEntry = getScriptRegistry().takeScript(configuration);
             scriptEntry.addScriptListener(this);
             scriptName = scriptEntry.getName();
-            embeddedHandler = new ScriptedRequestHandler(scriptEntry, getScriptCustomizer());
-            selfRegistration = context.registerService(RequestHandler.class, embeddedHandler, getProperties());
+            synchronized (registrationLock) {
+                embeddedHandler = new ScriptedRequestHandler(scriptEntry, getScriptCustomizer());
+                selfRegistration = context.registerService(RequestHandler.class, embeddedHandler, getProperties());
+            }
         } catch (ScriptException e) {
             final String factoryPid = configuration.get(ServerConstants.CONFIG_FACTORY_PID).defaultTo("").asString();
             throw new ComponentException("Failed to take script: " + factoryPid, e);
@@ -122,12 +131,14 @@ public abstract class AbstractScriptedService implements ScriptCustomizer, Scrip
     protected void updateScriptHandler(final JsonValue configuration) {
         try {
             ScriptEntry scriptEntry = getScriptRegistry().takeScript(configuration);
-            if (null != scriptName) {
+            if (scriptName != null) {
                 getScriptRegistry().deleteScriptListener(scriptName, this);
             }
             scriptEntry.addScriptListener(this);
             scriptName = scriptEntry.getName();
-            embeddedHandler.setScriptEntry(scriptEntry);
+            synchronized (registrationLock) {
+                embeddedHandler.setScriptEntry(scriptEntry);
+            }
         } catch (ScriptException e) {
             logger.error("Failed to modify the ScriptedService", e);
             final String factoryPid = configuration.get(ServerConstants.CONFIG_FACTORY_PID).defaultTo("").asString();
@@ -137,57 +148,55 @@ public abstract class AbstractScriptedService implements ScriptCustomizer, Scrip
 
     protected void unregisterService() {
         try {
-            if (null != selfRegistration) {
-                selfRegistration.unregister();
-                selfRegistration = null;
+            synchronized (registrationLock) {
+                // Prevent late script events from registering the service again
+                embeddedHandler = null;
+                unregisterHandler();
             }
-        } catch (IllegalStateException e) {
-            /* Catch if the service was already removed */
-            selfRegistration = null;
         } finally {
-            if (null != scriptName) {
+            if (scriptName != null) {
                 getScriptRegistry().deleteScriptListener(scriptName, this);
             }
         }
         logger.info("Wren:IDM Info Service component is deactivated.");
     }
 
+    /**
+     * Unregisters the request handler if it is registered. The caller holds {@link #registrationLock}.
+     */
+    private void unregisterHandler() {
+        if (selfRegistration != null) {
+            try {
+                selfRegistration.unregister();
+            } catch (IllegalStateException e) {
+                /* Catch if the service was already removed */
+            }
+            selfRegistration = null;
+        }
+    }
+
     // ----- Implementation of ScriptListener interface
 
     @Override
     public void scriptChanged(ScriptEvent event) throws ScriptException {
-        if (ScriptEvent.REGISTERED == event.getType()) {
-            if (null == selfRegistration) {
-                synchronized (selfRegistration) {
-                    if (null == selfRegistration) {
-                        final ScriptEntry scriptEntry = event.getScriptLibraryEntry();
-                        scriptEntry.setBindings(bindings);
-                        selfRegistration =
-                                getBundleContext().registerService(
-                                        RequestHandler.class,
-                                        new ScriptedRequestHandler(scriptEntry,
-                                                getScriptCustomizer()), getProperties());
-                    }
+        switch (event.getType()) {
+        case ScriptEvent.REGISTERED:
+            synchronized (registrationLock) {
+                // Register the handler again when the script is restored, unless the component was deactivated
+                if (selfRegistration == null && embeddedHandler != null) {
+                    selfRegistration = getBundleContext().registerService(
+                            RequestHandler.class, embeddedHandler, getProperties());
                 }
             }
-        } else if (ScriptEvent.UNREGISTERING == event.getType()) {
-            if (null != selfRegistration) {
-                synchronized (selfRegistration) {
-                    if (null != selfRegistration) {
-                        selfRegistration.unregister();
-                    }
-                }
+            break;
+        case ScriptEvent.UNREGISTERING:
+            synchronized (registrationLock) {
+                unregisterHandler();
             }
-        } else if (ScriptEvent.MODIFIED == event.getType()) {
-
-            /*
-             * if (null != selfRegistration) { selfRegistration.unregister(); }
-             * if (null == selfRegistration) { selfRegistration =
-             * getBundleContext().registerService(RequestHandler.class, new
-             * ScriptedRequestHandler( event.getScriptLibraryEntry(), this),
-             * properties); }
-             */
-
+            break;
+        default:
+            // MODIFIED - the handler uses the recompiled script, nothing to do
+            break;
         }
     }
 
